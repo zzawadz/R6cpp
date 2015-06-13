@@ -14,12 +14,6 @@ rp_parse_cpp = function(path)
   classes
 }
 
-rp_create_class_map = function(class)
-{
-  nameClass = rp_get_class_name(class)
-  membershipList = rp_extract_membership(class)
-
-}
 
 #' @name Get class name
 #' @description Extract class name from raw class definition.

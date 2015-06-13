@@ -1,10 +1,10 @@
-R6cppExports*.cpp
+R6cppExports*
 R6Test.cpp
 hello_world.o
 RcppExports.*
-hello_world.cpp
 *.dll
 *.o
+Rprof.out
 # History files
 .Rhistory
 

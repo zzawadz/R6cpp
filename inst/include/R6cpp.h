@@ -10,8 +10,8 @@ class R6Test
   std::vector<double> _vec;
 
   R6Test(int size);
-  void push_back(double val);
-  double at(int pos);
+  void push_back(const double& val);
+  double at(const int& pos);
 
 };
 //[[R6End]]
