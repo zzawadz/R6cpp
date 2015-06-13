@@ -1,3 +1,9 @@
+R6Test.cpp
+hello_world.o
+RcppExports.*
+hello_world.cpp
+*.dll
+*.o
 # History files
 .Rhistory
 
