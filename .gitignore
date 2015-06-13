@@ -1,3 +1,4 @@
+R6cppExports*.cpp
 R6Test.cpp
 hello_world.o
 RcppExports.*
