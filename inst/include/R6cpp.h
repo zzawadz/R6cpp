@@ -1,43 +1,19 @@
 #include <Rcpp.h>
 #include <vector>
-using namespace Rcpp;
 
 //[[R6Begin]]
-class TestVector
+class R6Test
 {
-  std::vector<double> vec;
+  public:
 
+  int _size;
+  std::vector<double> _vec;
 
-public:
-
-  TestVector();
-  void push_back(double val, const double& val2);
-  double at(int idx);
-  const fnc_test(std::vector<double>& vec);
-
-  double testValue; //[[R6: get, set]]
-  //[[R6: get, set]]
-  double testVal2;
-  double val;
-  const double cnst;
-};
-//[[R6End]]
-
-//[[R6Begin]]
-class TestRow
-{
-  TestVector row;
-
-
-public:
-
-  bool isChecked;
-
-  TestRow();
+  R6Test(int size);
   void push_back(double val);
-  double at(int idx);
-  TestVector as_vector();
+  double at(int pos);
 
 };
 //[[R6End]]
+
 
