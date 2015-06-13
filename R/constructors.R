@@ -42,8 +42,8 @@ rp_create_r_constructor = function(constr)
   template = '
     initialize = function({{{params}}})
     {
-        pointer = {{{className}}}_{{{className}}}({{{params}}})
-    }
+        private$pointer = {{{className}}}_{{{className}}}({{{params}}})
+    },
   '
 
   whisker.render(template, constr)

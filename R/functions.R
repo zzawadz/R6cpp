@@ -34,7 +34,7 @@ rp_render_function_cpp = function(functionSlot)
 
   template = '
 // [[Rcpp::export]]
-{{{constness}}}{{{typeReturn}}} {{{nameClass}}}_{{{fncName}}}(const Rcpp::XPtr<{{{nameClass}}}> r6Ptr, {{{params}}})
+{{{constness}}}{{{typeReturn}}} {{{nameClass}}}_{{{fncName}}}(const Rcpp::XPtr<{{{nameClass}}}>& r6Ptr, {{{params}}})
 {
   return {{{returnCode}}};
 }
@@ -53,7 +53,21 @@ rp_render_function_cpp = function(functionSlot)
   }
 
   whisker.render(template, functionSlot)
-
 }
 
+rp_render_r_functions = function(functionsSlots)
+{
+  sapply(functionsSlots, rp_render_r_single_fnc) %>% paste(collapse = ",")
+}
 
+rp_render_r_single_fnc = function(slot)
+{
+    slot$cppFncName = paste(slot$nameClass,slot$fncName,sep = "_")
+    slot$params = slot$paramsList$paramsNames %>% paste(collapse = ", ")
+
+template = '
+  {{{fncName}}} = function({{{params}}}){
+    {{{cppFncName}}}(private$pointer, {{{params}}})
+  }'
+    whisker.render(template, slot)
+}
