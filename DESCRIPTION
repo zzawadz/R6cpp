@@ -1,0 +1,15 @@
+Package: R6cpp
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1
+Date: 2015-06-10
+Author: Who wrote it
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+LazyData: TRUE
+Imports:
+    Rcpp (>= 0.11.6)
+LinkingTo:
+    Rcpp
+Depends: R6, Rcpp, whisker, readr, stringi, magrittr
