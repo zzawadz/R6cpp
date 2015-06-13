@@ -3,7 +3,7 @@ rp_create_files = function(classes, path, out = "src")
   lapply(classes, rp_create_files_for_class, path = path, out = out)
 }
 
-rp_create_files_for_class = function(class, path, out = "src")
+rp_create_class_list = function(class)
 {
   public = rp_extract_public(class)
   nameClass = rp_get_class_name(class)
@@ -15,13 +15,19 @@ rp_create_files_for_class = function(class, path, out = "src")
   constructorsSlots = lapply(slotsList$constructors, rp_create_constructor_slot)
 
   classList = list(nameClass = nameClass,
-       functionsSlots = functionsSlots,
-       paramsSlots = paramsSlots,
-       constructorsSlots = constructorsSlots)
+                   functionsSlots = functionsSlots,
+                   paramsSlots = paramsSlots,
+                   constructorsSlots = constructorsSlots)
+  classList
 
+}
+
+
+rp_create_files_for_class = function(class, path, out = "src")
+{
+  classList = rp_create_class_list(class)
   # create cpp files
   rp_create_cpp_export_file(classList, path, out)
-
 }
 
 rp_create_cpp_export_file = function(classList, path, out = "src")

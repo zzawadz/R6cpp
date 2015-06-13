@@ -33,3 +33,18 @@ Rcpp::XPtr<{{{className}}}> {{{className}}}_{{{className}}}({{{params}}})
   whisker.render(template, constr)
 
 }
+
+
+rp_create_r_constructor = function(constr)
+{
+  constr = constr[[1]]
+  constr$params = constr$paramsList$paramsNames %>% paste(collapse = ", ")
+  template = '
+    initialize = function({{{params}}})
+    {
+        pointer = {{{className}}}_{{{className}}}({{{params}}})
+    }
+  '
+
+  whisker.render(template, constr)
+}
