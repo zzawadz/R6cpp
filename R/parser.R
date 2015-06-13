@@ -1,7 +1,7 @@
+#' @name Extract classes from h or cpp file.
+#'
 rp_parse_cpp = function(path)
 {
-  library(R6cpp)
-  path  = "inst/include/R6cpp.h"
   lines = read_lines(file = path)
 
   begins = grep(lines, pattern = "\\[\\[R6Begin\\]\\]")
@@ -16,9 +16,6 @@ rp_parse_cpp = function(path)
 
 rp_create_class_map = function(class)
 {
-  class = classes[[1]]
-
-
   nameClass = rp_get_class_name(class)
   membershipList = rp_extract_membership(class)
 
@@ -32,83 +29,52 @@ rp_get_class_name = function(class)
 }
 
 
-rp_extract_membership = function(class)
+rp_extract_public = function(class)
 {
   end = stri_locate_last_regex(class, "\\};")[[1]]-1
   start = stri_locate_first_fixed(class,"{")[[1]]+1
 
-  positions = lapply(c("private:","protected:","public:"), function(membership)
+  positions = lapply(c("private\\s*:","protected\\s*:","public\\s*:"), function(membership)
   stri_locate_all_regex(class, membership)[[1]])
 
   names(positions) = c("private","protected","public")
   rawChangePos = c(unlist(positions) %>% na.omit %>% as.numeric, end)
 
-  private = c(start, positions$private[[2]]) %>% na.omit %>% as.numeric
-  private = c(private, min(rawChangePos[private < rawChangePos]))
-  private = substring(class, private[1], private[2]-1)
-
-  protected = NULL
+  #private = c(start, positions$private[[2]]) %>% na.omit %>% as.numeric
+  #private = c(private, min(rawChangePos[private < rawChangePos]))
+  #private = substring(class, private[1], private[2]-1)
+  #protected = NULL
 
   public = positions$public[[2]]
   public = c(public, min(rawChangePos[public < rawChangePos]))
   public = substring(class, public[1]+1, public[2]-1)
 
-  membershipList = list(private = private, protected = protected, public = public)
-  membershipList
-
+  #membershipList = list(private = private, protected = protected, public = public)
+  #membershipList
+  public
 }
 
-rp_split_to_slots = function(member, nameClass)
+rp_split_to_slots = function(public, nameClass)
 {
-  if(is.null(member)) return(NULL)
-  member = membershipList[[3]]
-  #member = stri_replace_all_fixed(member,"\n","")
-  cat(member)
-  #rawMap = stri_split_fixed(member, ";")[[1]]
+  if(is.null(public)) stop("There is no code to export!")
 
-  cat(member)
+
   # extract variables
-  variables = stri_extract_all_regex(member, "(//\\[\\[R6:.*\\]\\]\\s*)?(const )?\\w+\\s+\\w+;( )*(//\\[\\[R6:.*\\]\\]\\s*)?")[[1]]
+  variables = stri_extract_all_regex(public, "(//\\[\\[R6:.*\\]\\]\\s*)?(const )?\\w+\\s+\\w+;( )*(//\\[\\[R6:.*\\]\\]\\s*)?")[[1]]
 
-  functions = stri_extract_all_regex(member, "(//\\[\\[R6:.*\\]\\]\\s*)?(const )?\\w+\\s\\w+\\(.*\\);( )*(//\\[\\[R6:.*\\]\\]\\s*)?")[[1]]
+  functions = stri_extract_all_regex(public, "(//\\[\\[R6:.*\\]\\]\\s*)?(const )?\\w+\\s\\w+\\(.*\\);( )*(//\\[\\[R6:.*\\]\\]\\s*)?")[[1]]
 
-  constructors = stri_extract_all_regex(member, "(//\\[\\[R6:.*\\]\\]\\s*)?\\w+\\(.*\\);( )*(//\\[\\[R6:.*\\]\\]\\s*)?")[[1]]
+  constructors = stri_extract_all_regex(public, "(//\\[\\[R6:.*\\]\\]\\s*)?\\w+\\(.*\\);( )*(//\\[\\[R6:.*\\]\\]\\s*)?")[[1]]
   constructors = constructors[grepl(nameClass, constructors)]
 
-
-  variables
-
+  slotsList = list(variables = variables,
+                   constructors = constructors,
+                   functions = functions)
+  slotsList
 
 }
 
-rp_create_function_slot = function(slot)
-{
-  slot = functions[1]
 
-  attrs = rp_extract_attributes(slot)
-  if(is.na(attrs)) attrs = "NOTHING"
-  if(attrs == "notExport") return(NULL)
-
-  slot = stri_replace_all_regex(slot,"//\\[\\[R6:.*\\]\\]\\s*","")
-  constness = substr(slot,1,5) == "const"
-  if(constness) slot = substring(slot,7)
-
-  tmp = stri_extract_all_regex(slot, "\\w+")[[1]][1:2]
-
-  typeReturn = tmp[1]
-  returnAsPtr = if(any(attrs == "return=xptr")) TRUE else FALSE
-
-  fncName = tmp[2]
-
-  paramsList = rp_extract_params(slot, attrs)
-
-  functionSlot = list(fncName = fncName,
-                      typeReturn = typeReturn,
-                      paramsList = paramsList,
-                      constness = constness,
-                      returnAsPtr = returnAsPtr)
-  functionSlot
-}
 
 rp_extract_attributes = function(slot)
 {
@@ -161,31 +127,3 @@ rp_params2xptr = function(ptrTypes)
 }
 
 
-rp_render_function_slot = function(functionSlot, nameClass)
-{
-  functionSlot$constness = if(functionSlot$constness) "const " else ""
-
-template = '
-{{{constness}}}{{{typeReturn}}} {{{fncName}}}(const Rcpp::XPtr<{{{nameClass}}}> r6Ptr, {{{params}}})
-{
-  return {{{returnCode}}};
-}
-'
-
-  params = functionSlot$paramsList
-  functionSlot$params = paste(params$paramsType,params$paramsNames) %>% paste(collapse = ", ")
-  paramsRaw = functionSlot$paramsList$paramsNames %>% paste(collapse = ", ")
-
-  if(functionSlot$returnAsPtr)
-  {
-    functionSlot$returnCode = sprintf("XPtr<%s>(&r6Ptr->%s(%s))",functionSlot$typeReturn,functionSlot$fncName, paramsRaw)
-  } else
-  {
-    functionSlot$returnCode = sprintf("r6Ptr->%s(%s)",functionSlot$fncName, paramsRaw)
-  }
-
-  functionSlot$nameClass = nameClass
-
-  whisker.render(template, functionSlot) %>% cat
-
-}
