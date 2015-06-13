@@ -1,4 +1,4 @@
-rp_create_function_slot = function(slot, className)
+rp_create_function_slot = function(slot, nameClass)
 {
   attrs = rp_extract_attributes(slot)
   if(is.na(attrs)) attrs = "NOTHING"
@@ -22,7 +22,7 @@ rp_create_function_slot = function(slot, className)
                       paramsList = paramsList,
                       constness = constness,
                       returnAsPtr = returnAsPtr,
-                      className = className)
+                      nameClass = nameClass)
   functionSlot
 }
 
@@ -34,27 +34,25 @@ rp_render_function_cpp = function(functionSlot)
 
   template = '
 // [[Rcpp::export]]
-{{{constness}}}{{{typeReturn}}} {{{className}}}_{{{fncName}}}(const Rcpp::XPtr<{{{nameClass}}}> r6Ptr, {{{params}}})
+{{{constness}}}{{{typeReturn}}} {{{nameClass}}}_{{{fncName}}}(const Rcpp::XPtr<{{{nameClass}}}> r6Ptr, {{{params}}})
 {
   return {{{returnCode}}};
 }
 '
 
-params = functionSlot$paramsList
-functionSlot$params = paste(params$paramsType,params$paramsNames) %>% paste(collapse = ", ")
-paramsRaw = functionSlot$paramsList$paramsNames %>% paste(collapse = ", ")
+  params = functionSlot$paramsList
+  functionSlot$params = paste(params$paramsType,params$paramsNames) %>% paste(collapse = ", ")
+  paramsRaw = functionSlot$paramsList$paramsNames %>% paste(collapse = ", ")
 
-if(functionSlot$returnAsPtr)
-{
-  functionSlot$returnCode = sprintf("XPtr<%s>(&r6Ptr->%s(%s))",functionSlot$typeReturn,functionSlot$fncName, paramsRaw)
-} else
-{
-  functionSlot$returnCode = sprintf("r6Ptr->%s(%s)",functionSlot$fncName, paramsRaw)
-}
+  if(functionSlot$returnAsPtr)
+  {
+    functionSlot$returnCode = sprintf("XPtr<%s>(&r6Ptr->%s(%s))",functionSlot$typeReturn,functionSlot$fncName, paramsRaw)
+  } else
+  {
+    functionSlot$returnCode = sprintf("r6Ptr->%s(%s)",functionSlot$fncName, paramsRaw)
+  }
 
-functionSlot$nameClass = nameClass
-
-whisker.render(template, functionSlot)
+  whisker.render(template, functionSlot)
 
 }
 
