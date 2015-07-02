@@ -33,16 +33,22 @@ rp_render_function_cpp = function(functionSlot)
   functionSlot$constness = if(functionSlot$constness) "const " else ""
 
   template = '
-// [[Rcpp::export]]
-{{{constness}}}{{{typeReturn}}} {{{nameClass}}}_{{{fncName}}}(const Rcpp::XPtr<{{{nameClass}}}>& r6Ptr, {{{params}}})
+// [[Rcpp::export(rng=false)]]
+{{{constness}}}{{{typeReturn}}} {{{nameClass}}}_{{{fncName}}}(const Rcpp::XPtr<{{{nameClass}}}>& r6Ptr{{{params}}})
 {
   return {{{returnCode}}};
 }
 '
-
-  params = functionSlot$paramsList
-  functionSlot$params = paste(params$paramsType,params$paramsNames) %>% paste(collapse = ", ")
+  if(!is.na(functionSlot$paramsList$paramsType))
+  {
+    params = functionSlot$paramsList
+    functionSlot$params = paste(",", paste(params$paramsType,params$paramsNames) %>% paste(collapse = ", "))
   paramsRaw = functionSlot$paramsList$paramsNames %>% paste(collapse = ", ")
+  } else
+  {
+    functionSlot$params = ""
+    paramsRaw = ""
+  }
 
   if(functionSlot$returnAsPtr)
   {
@@ -63,11 +69,19 @@ rp_render_r_functions = function(functionsSlots)
 rp_render_r_single_fnc = function(slot)
 {
     slot$cppFncName = paste(slot$nameClass,slot$fncName,sep = "_")
-    slot$params = slot$paramsList$paramsNames %>% paste(collapse = ", ")
+
+    if(is.na(slot$paramsList$paramsNames))
+    {
+      slot$params = ""
+    } else
+    {
+      slot$params = paste(slot$paramsList$paramsNames %>% paste(collapse = ", "))
+    }
+
 
 template = '
   {{{fncName}}} = function({{{params}}}){
-    {{{cppFncName}}}(private$pointer, {{{params}}})
+    {{{cppFncName}}}(private$pointer{{{params}}})
   }'
     whisker.render(template, slot)
 }

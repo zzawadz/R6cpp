@@ -1,3 +1,15 @@
+
+rp_render_all = function(path2h = NULL, outCpp = "src", outR = "R")
+{
+  if(is.null(path2h))
+  {
+    path2h = dir("inst/include", full.names = TRUE)
+  }
+
+  classes = rp_parse_cpp(path2h)
+  rp_create_files(classes, path2h, outCpp, outR)
+}
+
 rp_create_files = function(classes, path, outCpp = "src", outR = "R")
 {
   lapply(classes, rp_create_files_for_class, path = path, outCpp = outCpp, outR = outR)
