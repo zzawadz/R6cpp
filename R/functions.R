@@ -75,7 +75,7 @@ rp_render_r_single_fnc = function(slot)
       slot$params = ""
     } else
     {
-      slot$params = paste(slot$paramsList$paramsNames %>% paste(collapse = ", "))
+      slot$params = paste(",",slot$paramsList$paramsNames %>% paste(collapse = ", "))
     }
 
 
